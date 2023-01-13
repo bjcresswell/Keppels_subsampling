@@ -103,6 +103,8 @@ subsample_main %>%
 subsample_main %>% 
   filter(is.na(PLATE_ID))
 
+write.csv(subsample_main, "2_output/sample_tracker.csv")
 
 
+usethis::use_github()
 
