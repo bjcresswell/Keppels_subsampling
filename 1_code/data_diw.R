@@ -75,9 +75,20 @@ notebook <-
 
 # Check for any differences 
 
-# What does well_plates contain that notebook doesn't? -> only the empty slots
+# What does well_plates contain that notebook doesn't? -> only the empty slots:
 sample_check1 <- 
   anti_join(well_plates, notebook)
+
+# However, some empties caused by moving out of a 'muscle tissue' tray into the scale tray (P.Ad_10)
+sample_check1a <- 
+  anti_join(well_plates, notebook) %>% 
+  filter(TISSUE != 'Nil')
+# 21 of these
+
+# And others are the designated empty slots (for indexing)
+sample_check1b <- 
+  anti_join(well_plates, notebook) %>% 
+  filter(TISSUE == 'Nil')
 
 # What does notebook contain that well_plates doesn't?
 sample_check2 <- 
@@ -106,5 +117,5 @@ subsample_main %>%
 write.csv(subsample_main, "2_output/sample_tracker.csv")
 
 
-usethis::use_github()
+#usethis::use_github()
 
