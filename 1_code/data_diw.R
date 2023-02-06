@@ -29,13 +29,15 @@ ad_tissue <- read_xlsx('0_data/tissue_samples.xlsx') %>%
 
 # Combine together for all adult samples - 813 in total
 ad_samples <- ad_fins %>% 
-  bind_rows(ad_scale, ad_tissue)
+  bind_rows(ad_scale, ad_tissue) 
+
+  
 
 # Juvies
 ## ALl juvenile samples are fin clips - 1013 in total
 juv_samples <- read_xlsx('0_data/juv_samples.xlsx') %>% 
   dplyr::select(INDIVID_ID, PLATE_ID,  WELL_ID, TISSUE) %>% 
-  mutate_if(is.character, as.factor)
+  mutate_if(is.character, as.factor) 
 
 
 # Finally the empty slots
@@ -55,16 +57,14 @@ well_plates <-
 # Wrangle in notebook raw data
 
 Juv_KI3.3 <- read_xlsx('0_data/Plec_Sample data_Keppels_ KI3.3.xlsx', sheet = 2) %>% 
-  dplyr::select(INDIVID_ID, DATE, REEF, SITE, TISSUE, LIFE_STAGE, TL) %>% 
-  mutate(DATE = as.Date(DATE),
-         TL = as.numeric(TL)) %>%  
+  dplyr::select(INDIVID_ID, TISSUE, LIFE_STAGE) %>% 
+  #mutate(DATE = as.Date(DATE), TL = as.numeric(TL)) %>%  
   rename(TISSUE_TYPE = TISSUE) %>% 
   mutate_if(is.character, as.factor)
 
 Ad_KI3.3 <- read_xlsx('0_data/Plec_Sample data_Keppels_ KI3.3.xlsx', sheet = 1) %>% 
-  dplyr::select(INDIVID_ID, DATE, REEF, SITE, TISSUE, LIFE_STAGE, TL) %>% 
-  mutate(DATE = as.Date(DATE),
-         TL = as.numeric(TL)) %>%  
+  dplyr::select(INDIVID_ID, TISSUE, LIFE_STAGE) %>% 
+  #mutate(DATE = as.Date(DATE), TL = as.numeric(TL)) %>%  
   rename(TISSUE_TYPE = TISSUE) %>% 
   mutate_if(is.character, as.factor)
 
@@ -74,18 +74,19 @@ notebook <-
 
 
 # Check for any differences 
+# Firstly, note that the well_plates df is bigger than the notebook df (by 40 total)
 
-# What does well_plates contain that notebook doesn't? -> only the empty slots:
+# What does well_plates contain that notebook doesn't? -> only the empty slots (43 total)
 sample_check1 <- 
   anti_join(well_plates, notebook)
 
-# However, some empties caused by moving out of a 'muscle tissue' tray into the scale tray (P.Ad_10)
+# However, some empties caused by moving out of a 'muscle tissue' tray into the scale tray (P.Ad_10) - 21 of these
 sample_check1a <- 
   anti_join(well_plates, notebook) %>% 
   filter(TISSUE != 'Nil')
 # 21 of these
 
-# And others are the designated empty slots (for indexing)
+# And others are the designated empty slots (for indexing - 22 of these: 12 PJuv and 10 PAd trays)
 sample_check1b <- 
   anti_join(well_plates, notebook) %>% 
   filter(TISSUE == 'Nil')
@@ -98,12 +99,16 @@ sample_check2 <-
 # P.ad_5113 is a duplicate of P.ad_5111
 # P.ad_5568 and P.ad_5569 were muddled up in processing and thrown out
 
+# So 43 - 3 = 40 which is the total difference
 
 # Combine together for master list
 subsample_main <- 
   merge(notebook, well_plates, by = 'INDIVID_ID', all = TRUE) %>% 
   mutate(WP_ID = paste(PLATE_ID, WELL_ID)) %>% 
-  arrange(WP_ID)
+  select(!TISSUE_TYPE) %>% 
+  filter(!is.na(PLATE_ID)) %>% 
+  arrange(WP_ID) %>% 
+  as_tibble()
 
 
 # Checks
@@ -114,7 +119,7 @@ subsample_main %>%
 subsample_main %>% 
   filter(is.na(PLATE_ID))
 
-write.csv(subsample_main, "2_output/sample_tracker.csv")
+write_csv(subsample_main, "2_output/sample_tracker.csv")
 
 
 #usethis::use_github()
